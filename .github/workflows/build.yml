@@ -67,8 +67,21 @@ jobs:
           EOF
       - name: Use debug signing key
         run: |
-          sed -i -E '/^\s*signingConfig\s*=?\s*signingConfigs\./d' app/build.gradle
-          grep -n "signingConfig" app/build.gradle || true
+          python3 - <<'EOF'
+          import re
+          p = 'app/build.gradle'
+          s = open(p).read()
+          m = re.search(r'signingConfigs\s*\{', s)
+          if m:
+              i = m.end(); depth = 1
+              while depth and i < len(s):
+                  depth += (s[i] == '{') - (s[i] == '}')
+                  i += 1
+              s = s[:m.start()] + s[i:]
+          s = re.sub(r'(?m)^\s*signingConfig\s*=?\s*signingConfigs\..*$', '', s)
+          open(p, 'w').write(s)
+          EOF
+          grep -n -i "signing\|keystore\|storeFile" app/build.gradle || echo "no signing lines left"
       - run: chmod +x gradlew
       - name: Build
         run: |
