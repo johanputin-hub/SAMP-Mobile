@@ -65,8 +65,21 @@ jobs:
             }
           }
           EOF
+      - name: Use debug signing key
+        run: |
+          sed -i -E '/^\s*signingConfig\s*=?\s*signingConfigs\./d' app/build.gradle
+          grep -n "signingConfig" app/build.gradle || true
       - run: chmod +x gradlew
-      - run: ./gradlew assembleDebug --no-daemon
+      - name: Build
+        run: |
+          set +e
+          ./gradlew assembleDebug --no-daemon > build.log 2>&1
+          RC=$?
+          if [ $RC -ne 0 ]; then
+            E=$(grep -E "fatal error|error:|undefined reference|What went wrong|Could not|not found" -A1 build.log | grep -v "^--" | head -12 | cut -c1-230 | tr '\n' '|')
+            echo "::error title=BUILD ERROR::${E}"
+          fi
+          exit $RC
       - uses: actions/upload-artifact@v4
         with:
           name: client-apk
