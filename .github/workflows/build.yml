@@ -11,8 +11,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Replace dead repository with JitPack
+      - name: Fix dead library repository and version
         run: |
+          grep -rl "PRDownloader:1.0.1" --include=*.gradle . | xargs sed -i 's/PRDownloader:1.0.1/PRDownloader:1.0.2/'
           mkdir -p ~/.gradle/init.d
           cat > ~/.gradle/init.d/fix.gradle <<'EOF'
           allprojects {
