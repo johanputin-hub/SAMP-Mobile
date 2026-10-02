@@ -11,6 +11,16 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      - name: Find missing header
+        run: |
+          echo "=== samp_widgets folders/files ==="
+          find . -ipath "*samp_widgets*" -not -path "./.git/*" | head -60
+          echo "=== anything named like playerTabList ==="
+          find . -iname "*tablist*" -not -path "./.git/*"
+          echo "=== gui folder ==="
+          ls app/src/main/cpp/samp/gui | head -60
+          echo "=== gitignore lines ==="
+          grep -n -i -E "widget|gui|samp|\.h" .gitignore || true
       - name: Fix dead library repository and version
         run: |
           grep -rl "PRDownloader:1.0.1" --include=*.gradle . | xargs sed -i 's/PRDownloader:1.0.1/PRDownloader:1.0.2/'
